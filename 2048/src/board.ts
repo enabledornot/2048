@@ -4,6 +4,7 @@ import { createCube, createBackdrop } from "./sprites";
 var size = [3,3];
 var board: Board;
 var animating_sprites: AnimatingTile[] = [];
+var scaling_sprites: Sprite[] = [];
 var app: (Application| null) = null;
 var animating: boolean = false;
 var animating_counter: number = 0;
@@ -62,6 +63,9 @@ export function set_app(newApp: Application) {
                     animating_sprites[i].tile.sprite.y = (1-percent)*animating_sprites[i].tile.sprite.y + percent*animating_sprites[i].newPos[1];
                 }
                 animating_counter += 1;
+                for(let i = 0; i < scaling_sprites.length; i++) {
+                    scaling_sprites[i].scale.set(animating_counter/animating_time);
+                }
             }
             else {
                 for(let i = 0; i < animating_sprites.length; i++) {
@@ -75,6 +79,7 @@ export function set_app(newApp: Application) {
                 animating_counter = 0;
                 animating = false;
                 animating_sprites = [];
+                scaling_sprites = [];
             }
         }
     })
@@ -131,6 +136,8 @@ function add_tile(posX: number, posY: number, value: number) {
         newSprite.anchor.set(0.5,0.5);
         const [tileX, tileY] = compute_tile_pos(posX, posY);
         newSprite.position.set(tileX, tileY);
+        newSprite.scale.set(0);
+        scaling_sprites.push(newSprite);
         app.stage.addChild(newSprite);
         var newTile: Tile = {
             value: value,
@@ -157,6 +164,7 @@ export function init_board(sizeX: number, sizeY: number) {
     board = new Board(sizeX, sizeY);
     add_random_tile();
     add_random_tile();
+    animating = true;
 }
 export function move(direction: string) {
     if (board) {

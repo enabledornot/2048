@@ -25,7 +25,6 @@ class Board {
         );
     }
     public convertXY(x: number, y:number, direction: string) {
-        // console.log(direction);
         switch(direction) {
             case "up":
                 return [x,y];
@@ -45,8 +44,6 @@ class Board {
     }
     public get(o_x: number, o_y: number, direction: string = "up") {
         const [x,y] = this.convertXY(o_x,o_y,direction);
-        // console.log(x);
-        // console.log(y);
         return this.data[x][y];
     }
     public set(o_x: number, o_y: number, newValue: (Tile | null), direction : string = "up") {
@@ -105,7 +102,7 @@ function compute_tile_pos(posX_o: number, posY_o: number, direction: string = "u
 }
 
 const tile_colors = new Map([
-    [0,     "#cdc1b4"], // empty tile
+    [0,     "#cdc1b4"],
     [2,     "#eee4da"],
     [4,     "#ede0c8"],
     [8,     "#f2b179"],
@@ -117,7 +114,6 @@ const tile_colors = new Map([
     [512,   "#edc850"],
     [1024,  "#edc53f"],
     [2048,  "#edc22e"],
-    // Optional: Beyond 2048
     [4096,  "#3c3a32"],
     [8192,  "#3c3a32"],
   ]);
@@ -161,24 +157,17 @@ export function init_board(sizeX: number, sizeY: number) {
     board = new Board(sizeX, sizeY);
     add_random_tile();
     add_random_tile();
-    // add_random_tile();
-    // add_tile(0,0,2);
-    // add_tile(1,4,2);
-    // add_tile(1,3,2);
 }
 export function move(direction: string) {
-    console.log('hi');
     if (board) {
         for(let x = 0; x < size[0]; x++) {
             let lastEmpty;
-            let lastEmptyDelta = 0;
             if(board.get(x,0,direction) == null) {
                 lastEmpty = 0;
             }
             else {
                 lastEmpty = 1;
             }
-            // while (board.get(x,lastEmpty,direction) != null) lastEmpty += 1;
             for(let y = 1; y < size[1]; y++) {
                 if (board.get(x,y,direction)) {
                     if(lastEmpty != 0 && board.get(x,lastEmpty-1,direction)?.value == board.get(x,y,direction)?.value) {

@@ -17,12 +17,12 @@ export const CUBE_DEFS: CubeSpec[] = {
 
 export function createCube(value: number, color: string): PIXI.Container {
     const container = new PIXI.Container();
-    const square = new PIXI.Graphics().rect(0,0,100,100).fill('yellow');
+    const square = new PIXI.Graphics().rect(0,0,100,100).fill(color);
     container.addChild(square);
     const txt = new Text({
         text: String(value),
         style: {
-            fill: color,
+            fill: 'black',
             fontSize: 25,
             fontFamily: 'Arial'
         },
@@ -36,10 +36,10 @@ export function createCube(value: number, color: string): PIXI.Container {
 }
 export function createBackdrop(x: number, y: number): PIXI.Container {
     const container = new PIXI.Container();
-    const backSquare = new PIXI.Graphics().rect(0,0,140*x,140*y).fill('lightgrey');
+    const backSquare = new PIXI.Graphics().rect(0,0,110*x + 10,110*y + 10).fill('lightgrey');
     container.addChild(backSquare);
-    for(let xi = 20; xi < x*120; xi += 140) {
-        for(let yi = 20; yi < y*120; yi += 140) {
+    for(let xi = 10; xi < x*110; xi += 110) {
+        for(let yi = 10; yi < y*110; yi += 110) {
             const greySquare = new PIXI.Graphics().rect(xi,yi,100,100).fill('grey');
             container.addChild(greySquare);
         }

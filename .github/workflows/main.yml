@@ -18,9 +18,11 @@ jobs:
           node-version: 22
 
       - name: Install dependencies
+        working-directory: ./2048
         run: npm ci
 
       - name: Build
+        working-directory: ./2048
         run: npm run build
 
       - name: Deploy to GitHub Pages

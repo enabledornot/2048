@@ -1,8 +1,9 @@
 import { Application, Assets, Renderer, Sprite, Texture, triangulateWithHoles } from "pixi.js";
 import { createCube, createBackdrop } from "./sprites";
+import { Mutex } from 'async-mutex';
 
 var size = [3,3];
-var board: Board;
+var board: (Board | null);
 var animating_sprites: AnimatingTile[] = [];
 var scaling_sprites: Sprite[] = [];
 var app: (Application| null) = null;
@@ -42,6 +43,20 @@ class Board {
         }
         console.log(`unknown_direction ${direction}`)
         return [x,y];
+    }
+    public convertDim(size: number[], direction: string) {
+        switch(direction) {
+            case "up":
+                return size;
+            case "down":
+                return size;
+            case "right":
+                return [size[1],size[0]];
+            case "left":
+                return [size[1],size[0]];
+        }
+        console.log(`unknown_direction ${direction}`)
+        return size; 
     }
     public get(o_x: number, o_y: number, direction: string = "up") {
         const [x,y] = this.convertXY(o_x,o_y,direction);
@@ -147,15 +162,21 @@ function add_tile(posX: number, posY: number, value: number) {
     }
 }
 
-function random_pos() {
-    var rand = Math.floor(Math.random()*(size[0]*size[1]));
-    return [Math.floor(rand / size[0]),rand % size[1]];
-}
-
 function add_random_tile(value: number = 2) {
-    var [x,y] = random_pos()
-    while(board.get(x,y) != null) [x,y] = random_pos();
-    add_tile(x,y,value);
+    var empty_spaces = [];
+    for(var x = 0; x < size[0]; x++) {
+        for(var y = 0; y < size[1]; y++) {
+            if(board.get(x,y) == null) {
+                empty_spaces.push([x,y]);
+            }
+        }
+    }
+    if (empty_spaces.length == 0) {
+        return false;
+    }
+    var rand = Math.floor(Math.random()*(empty_spaces.length));
+    add_tile(empty_spaces[rand][0],empty_spaces[rand][1],value);
+    return true;
 }
 
 export function init_board(sizeX: number, sizeY: number) {
@@ -166,9 +187,18 @@ export function init_board(sizeX: number, sizeY: number) {
     add_random_tile();
     animating = true;
 }
-export function move(direction: string) {
+const move_mutex = new Mutex();
+export async function move(direction: string) {
+    await move_mutex.runExclusive(async () => {
+        move_helper(direction);
+    })
+}
+
+function move_helper(direction: string) {
     if (board) {
-        for(let x = 0; x < size[0]; x++) {
+        var move_count = 0;
+        const [dimX, dimY] = board.convertDim(size,direction);
+        for(let x = 0; x < dimX; x++) {
             let lastEmpty;
             if(board.get(x,0,direction) == null) {
                 lastEmpty = 0;
@@ -176,7 +206,7 @@ export function move(direction: string) {
             else {
                 lastEmpty = 1;
             }
-            for(let y = 1; y < size[1]; y++) {
+            for(let y = 1; y < dimY; y++) {
                 if (board.get(x,y,direction)) {
                     if(lastEmpty != 0 && board.get(x,lastEmpty-1,direction)?.value == board.get(x,y,direction)?.value) {
                         const newPos = compute_tile_pos(x,lastEmpty-1,direction);
@@ -194,8 +224,10 @@ export function move(direction: string) {
                             newPos: newPos,
                             newValue: cTile.value
                         });
+                        // console.log('merge');
+                        move_count += 1;
                     }
-                    else {
+                    else if (lastEmpty != y) {
                         const newPos = compute_tile_pos(x,lastEmpty,direction);
                         const cTile = board.get(x,y,direction);
                         board.set(x,y,null,direction);
@@ -206,11 +238,19 @@ export function move(direction: string) {
                             newPos: newPos,
                             newValue: null
                         });
+                        // console.log('slide');
+                        move_count += 1;
+                    }
+                    else {
+                        lastEmpty += 1;
                     }
                 }
             }
         }
         animating = true;
-        add_random_tile();
+        // console.log(move_count);
+        if (move_count > 0 && add_random_tile() == false) {
+            board = null;
+        }
     }
 }

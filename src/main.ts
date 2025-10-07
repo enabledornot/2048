@@ -10,7 +10,7 @@ import { set_app, init_board, move } from "./board";
   const renderer: Renderer = app.renderer;
   // Append the application canvas to the document body
   document.getElementById("pixi-container")!.appendChild(app.canvas);
-  init_board(3,3);
+  init_board(3,4);
 
   // create backdrop
   // const container = createBackdrop(3,3);

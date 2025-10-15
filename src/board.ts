@@ -9,7 +9,7 @@ var scaling_sprites: Sprite[] = [];
 var app: (Application| null) = null;
 var animating: boolean = false;
 var animating_counter: number = 0;
-const animating_time = 10;
+const animating_time = 4;
 type Tile = {
     value: number,
     sprite: Sprite
@@ -69,7 +69,7 @@ class Board {
 }
 export function set_app(newApp: Application) {
     app = newApp;
-    app.ticker.add(() => {
+    app.ticker.add((delta) => {
         if (animating) {
             if (animating_counter < animating_time) {
                 for(let i = 0; i < animating_sprites.length; i++) {
@@ -77,7 +77,10 @@ export function set_app(newApp: Application) {
                     animating_sprites[i].tile.sprite.x = (1-percent)*animating_sprites[i].tile.sprite.x + percent*animating_sprites[i].newPos[0];
                     animating_sprites[i].tile.sprite.y = (1-percent)*animating_sprites[i].tile.sprite.y + percent*animating_sprites[i].newPos[1];
                 }
-                animating_counter += 1;
+                animating_counter += delta.deltaTime;
+                if (animating_counter > animating_time) {
+                    animating_counter = animating_time;
+                }
                 for(let i = 0; i < scaling_sprites.length; i++) {
                     scaling_sprites[i].scale.set(animating_counter/animating_time);
                 }
